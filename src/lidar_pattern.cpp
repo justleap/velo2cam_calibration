@@ -32,6 +32,7 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
@@ -85,6 +86,19 @@ void callback(const PointCloud2::ConstPtr &laser_cloud) {
   // This cloud is already xyz-filtered
   fromROSMsg(*laser_cloud, *velocloud);
 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr velocloud_t (new pcl::PointCloud<pcl::PointXYZ>);
+  for (pcl::PointCloud<Velodyne::Point>::iterator pt =
+           velocloud->points.begin();
+       pt < velocloud->points.end(); ++pt){
+    pcl::PointXYZ point;
+    point.x = pt->x;
+    point.y = pt->y;
+    point.z = pt->z;
+    velocloud_t->push_back(point);
+  }
+  pcl::io::savePCDFileASCII("/home/zfy/velo2cam_data/velocloud.pcd", *velocloud_t);
+
+
   Velodyne::addRange(*velocloud);
 
   // Range passthrough filter
@@ -93,6 +107,19 @@ void callback(const PointCloud2::ConstPtr &laser_cloud) {
   pass2.setFilterFieldName("range");
   pass2.setFilterLimits(passthrough_radius_min_, passthrough_radius_max_);
   pass2.filter(*velo_filtered);
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr velo_filtered_t (new pcl::PointCloud<pcl::PointXYZ>);
+  for (pcl::PointCloud<Velodyne::Point>::iterator pt =
+           velo_filtered->points.begin();
+       pt < velo_filtered->points.end(); ++pt){
+
+    pcl::PointXYZ point;
+    point.x = pt->x;
+    point.y = pt->y;
+    point.z = pt->z;
+    velo_filtered_t->push_back(point);
+  }
+  pcl::io::savePCDFileASCII("/home/zfy/velo2cam_data/velo_filtered.pcd", *velo_filtered_t);
 
   // Publishing "range_filtered_velo" cloud (segmented plane)
   sensor_msgs::PointCloud2 range_ros;

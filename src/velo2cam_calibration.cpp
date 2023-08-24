@@ -500,7 +500,7 @@ void sensor2_callback(
         sensor2Received = false;
         sensor1_count = 0;
         sensor2_count = 0;
-        cout << "Please, adjust the filters for each sensor before the "
+        cout << "2Please, adjust the filters for each sensor before the "
                 "calibration starts."
              << endl;
       } else {  // Reset counter to allow further warmup
@@ -727,7 +727,7 @@ int main(int argc, char **argv) {
     S2_WARMUP_DONE = true;
     ROS_WARN("Skipping warmup");
   } else {
-    cout << "Please, adjust the filters for each sensor before the calibration "
+    cout << "1Please, adjust the filters for each sensor before the calibration "
             "starts."
          << endl;
   }

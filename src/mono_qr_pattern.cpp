@@ -119,7 +119,7 @@ Eigen::Matrix3f covariance(pcl::PointCloud<pcl::PointXYZ>::Ptr cumulative_cloud,
 void imageCallback(const sensor_msgs::ImageConstPtr &msg,
                    const sensor_msgs::CameraInfoConstPtr &left_info) {
   frames_proc_++;
-
+  cout<<"imageCallback"<<endl;
   cv_bridge::CvImageConstPtr cv_img_ptr;
   try {
     cv_img_ptr = cv_bridge::toCvShare(msg);
@@ -128,6 +128,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg,
     return;
   }
   cv::Mat image = cv_img_ptr->image;
+  imwrite("/home/zfy/velo2cam_data/image.jpg",image);
   cv::Mat imageCopy;
   image.copyTo(imageCopy);
   sensor_msgs::CameraInfoPtr cinfo(new sensor_msgs::CameraInfo(*left_info));
@@ -150,6 +151,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg,
   Mat distCoeffs(1, cinfo->D.size(), CV_32F);
   for (int i = 0; i < cinfo->D.size(); i++)
     distCoeffs.at<float>(0, i) = cinfo->D[i];
+
+  cout<<"cameraMatrix:"<<cameraMatrix<<endl;
+  cout<<"distCoeffs:"<<distCoeffs<<endl;
+
   // TODO End of block to move
 
   // Create vector of markers corners. 4 markers * 4 corners
@@ -216,11 +221,15 @@ std:
   // Detect markers
   std::vector<int> ids;
   std::vector<std::vector<cv::Point2f>> corners;
+  //cv::Mat gray;
+  //cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+
   cv::aruco::detectMarkers(image, dictionary, corners, ids, parameters);
 
+  cout<<"detectMarkers ids.size():"<<ids.size()<<endl;
   // Draw detections if at least one marker detected
   if (ids.size() > 0) cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-
+  imwrite("/home/zfy/velo2cam_data/detected.jpg",imageCopy);
   cv::Vec3d rvec(0, 0, 0), tvec(0, 0, 0);  // Vectors to store initial guess
 
   // Compute initial guess as average of individual markers poses
@@ -514,6 +523,15 @@ void warmup_callback(const std_msgs::Empty::ConstPtr &msg) {
 }
 
 int main(int argc, char **argv) {
+
+   /* Mat test_image=imread("/home/zfy/image.jpg");
+    auto dictionary = aruco::getPredefinedDictionary(aruco::PREDEFINED_DICTIONARY_NAME::DICT_6X6_250);
+    vector<vector<Point2f>>corners, rejectedImgPoints;
+    vector<int>ids;
+    auto parameters = aruco::DetectorParameters::create();
+    aruco::detectMarkers(test_image, dictionary, corners, ids, parameters, rejectedImgPoints);
+cout<<"ids.size() "<<ids.size() <<endl;
+cout<<"rejectedImgPoints.size() "<<rejectedImgPoints.size() <<endl;*/
   ros::init(argc, argv, "mono_qr_pattern");
   ros::NodeHandle nh;
   ros::NodeHandle nh_("~");
